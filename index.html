@@ -4,27 +4,69 @@
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title>demo</title>
-    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ar.js/2.1.1/aframe-ar.min.js"></script>
+    <script src="//cdn.rawgit.com/mrdoob/three.js/master/build/three.min.js"></script>
+
+    <script>
+
+        let camera, scene, renderer, video;
+
+        init();
+        animate();
+
+        function init() {
+
+            camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.01, 10 );
+            camera.position.z = 1;
+
+            scene = new THREE.Scene();
+
+            video = document.getElementById( 'video' );
+            const texture = new THREE.VideoTexture( video );
+            texture.minFilter = THREE.LinearFilter;
+            texture.magFilter = THREE.LinearFilter;
+            texture.format = THREE.RGBFormat;
+
+            const geometry = new THREE.PlaneBufferGeometry();
+            const material = new THREE.MeshBasicMaterial( { map: texture } );
+
+            const mesh = new THREE.Mesh( geometry, material );
+            scene.add( mesh );
+
+            renderer = new THREE.WebGLRenderer( { antialias: true } );
+            renderer.setSize( window.innerWidth, window.innerHeight );
+            document.body.appendChild( renderer.domElement );
+
+            initWebcamInput();
+
+        }
+
+        function initWebcamInput() {
+
+            if ( navigator.mediaDevices && navigator.mediaDevices.getUserMedia ) {
+
+                navigator.mediaDevices.getUserMedia( { video: true } ).then( stream => {
+
+                    video.src = window.URL.createObjectURL( stream );
+                    video.play();
+
+                } );
+
+            }
+
+        }
+
+        function animate() {
+
+            requestAnimationFrame( animate );
+            renderer.render( scene, camera );
+
+        }
+
+    </script>
+
 </head>
 
 <body>
-
-<a-scene
-        device-orientation-permission-ui="denyButtonText: deny motion sensors; allowButtonText: allow motion sensors;"
-        vr-mode-ui="enabled: false;"
-        renderer="logarithmicDepthBuffer: true;"
-        embedded
-        arjs="trackingMethod: best; sourceType: webcam;debugUIEnabled: false;">
-
-    <a-assets>
-        <a-asset-item id="obj" src="pyramid.glb"></a-asset-item>
-    </a-assets>
-
-    <a-entity gltf-model="#obj" position="0 0 -6" scale="1 1 1"></a-entity>
-
-    <a-entity camera position="0 2 6"></a-entity>
-
-</a-scene>
+<video id="video" style="display:none"></video>
 </body>
 </html>
